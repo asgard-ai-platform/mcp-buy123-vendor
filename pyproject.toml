@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-core123-vendor-api"
+version = "0.1.0"
+description = "MCP Server for Core123 Vendor (前台) API — AI-callable tools via Model Context Protocol"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Asgard AI Platform", email = "dev@asgard.ai"},
+]
+
+dependencies = [
+    "requests>=2.31.0",
+    "mcp>=1.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+# Browser-driven semi-automated login helper:
+#   pip install -e '.[auth]'
+#   playwright install chromium
+auth = [
+    "playwright>=1.45.0",
+]
+
+[project.scripts]
+mcp-core123-vendor = "mcp_server:main"
+mcp-core123-vendor-login = "scripts.auth.playwright_login:main"
+
+[tool.setuptools]
+py-modules = ["mcp_server", "app"]
+
+[tool.setuptools.packages.find]
+include = ["config*", "connectors*", "auth*", "tools*", "scripts*"]
