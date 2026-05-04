@@ -12,7 +12,6 @@ requires-python = ">=3.10"
 authors = [
     {name = "Asgard AI Platform", email = "dev@asgard.ai"},
 ]
-
 dependencies = [
     "requests>=2.31.0",
     "mcp>=1.0.0",
@@ -20,19 +19,23 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Browser-driven semi-automated login helper:
-#   pip install -e '.[auth]'
-#   playwright install chromium
 auth = [
     "playwright>=1.45.0",
 ]
-
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.6.0",
+]
 [project.scripts]
-mcp-buy123-vendor = "mcp_server:main"
-mcp-buy123-vendor-login = "scripts.auth.playwright_login:main"
+mcp-buy123-vendor = "mcp_buy123_vendor.server:main"
+mcp-buy123-vendor-login = "mcp_buy123_vendor.scripts.playwright_login:main"
 
 [tool.setuptools]
-py-modules = ["mcp_server", "app"]
+package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
-include = ["config*", "connectors*", "auth*", "tools*", "scripts*"]
+where = ["src"]
+
+include = ["mcp_buy123_vendor*"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -25,19 +25,19 @@ pytestmark = pytest.mark.skipif(
     reason="Live integration tests are opt-in. Set BUY123_RUN_LIVE_TESTS=1 to enable.",
 )
 
-# 確保專案根目錄在 sys.path 中
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# 確保 src/ 在 sys.path 中，讓 mcp_buy123_vendor.* 可解析
+import _src_bootstrap  # noqa: F401,E402
 
-import tools.abnormal_order_tools as abnormal_order_tools  # noqa: E402
-import tools.auth_tools as auth_tools  # noqa: E402
-import tools.bundle_tools as bundle_tools  # noqa: E402
-import tools.channel_tools as channel_tools  # noqa: E402
-import tools.common_tools as common_tools  # noqa: E402
-import tools.inventory_tools as inventory_tools  # noqa: E402
-import tools.return_tools as return_tools  # noqa: E402
-import tools.shipment_tools as shipment_tools  # noqa: E402
+import mcp_buy123_vendor.tools.abnormal_order_tools as abnormal_order_tools  # noqa: E402
+import mcp_buy123_vendor.tools.auth_tools as auth_tools  # noqa: E402
+import mcp_buy123_vendor.tools.bundle_tools as bundle_tools  # noqa: E402
+import mcp_buy123_vendor.tools.channel_tools as channel_tools  # noqa: E402
+import mcp_buy123_vendor.tools.common_tools as common_tools  # noqa: E402
+import mcp_buy123_vendor.tools.inventory_tools as inventory_tools  # noqa: E402
+import mcp_buy123_vendor.tools.return_tools as return_tools  # noqa: E402
+import mcp_buy123_vendor.tools.shipment_tools as shipment_tools  # noqa: E402
 
-from app import mcp  # noqa: E402
+from mcp_buy123_vendor.app import mcp  # noqa: E402
 
 
 # ── 輔助函式 ──────────────────────────────────────────────────────────────────

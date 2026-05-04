@@ -1,36 +1,22 @@
 #!/usr/bin/env python3
-"""Entry point — side-effect imports register @mcp.tool() decorators.
+"""向後相容入口包裝（root layout）。
 
-Loads .env (co-located with this file) before importing any module that
-reads environment variables, so the MCP process picks up tokens written
-by scripts/auth/playwright_login.py regardless of the cwd Claude Desktop
-or any other MCP client launches it from.
+實作已移至 src/mcp_buy123_vendor/server.py。
+此檔案僅作為薄包裝，確保舊有啟動方式（直接執行此檔案）仍可運作。
+
+新的啟動方式（安裝套件後）：
+    python -m mcp_buy123_vendor.server
 """
 
+import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
+# 確保 src/ 在 sys.path 中，讓未安裝套件時也能找到 mcp_buy123_vendor
+_SRC = Path(__file__).resolve().parent / "src"
+if str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
 
-load_dotenv(Path(__file__).resolve().parent / ".env")
-
-import tools.abnormal_order_tools  # noqa: E402,F401
-import tools.auth_tools  # noqa: E402,F401
-import tools.bundle_tools  # noqa: E402,F401
-import tools.channel_tools  # noqa: E402,F401
-import tools.common_tools  # noqa: E402,F401
-import tools.inventory_tools  # noqa: E402,F401
-import tools.permission_tools  # noqa: E402,F401
-import tools.product_tools  # noqa: E402,F401
-import tools.return_tools  # noqa: E402,F401
-import tools.shipment_tools  # noqa: E402,F401
-import tools.vendor_tools  # noqa: E402,F401
-
-from app import mcp  # noqa: E402
-
-
-def main():
-    mcp.run()  # stdio transport
-
+from mcp_buy123_vendor.server import main  # noqa: E402
 
 if __name__ == "__main__":
     main()

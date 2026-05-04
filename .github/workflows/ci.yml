@@ -23,8 +23,47 @@ jobs:
       # 靜態檢查：ruff lint（不修改檔案）
       - run: uv run ruff check .
 
+      # 安裝後入口解析驗證：確認 src-layout 套件與 project.scripts 入口可正確匯入
+      - name: Verify package entrypoint resolution after install
+        run: |
+          uv run python -c "import mcp_buy123_vendor.server; print('mcp_buy123_vendor.server OK')"
+          uv run python -c "import mcp_buy123_vendor.scripts.playwright_login; print('mcp_buy123_vendor.scripts.playwright_login OK')"
+          uv run python -c "from mcp_buy123_vendor.server import main; print('server.main OK')"
+          uv run python -c "from mcp_buy123_vendor.scripts.playwright_login import main; print('playwright_login.main OK')"
+        env:
+          BUY123_RUN_LIVE_TESTS: "0"
+          VENDOR_ACCESS_TOKEN: ""
+          VENDOR_REFRESH_TOKEN: ""
+          VENDOR_EMAIL: ""
+          VENDOR_PASSWORD: ""
+          VENDOR_ID: ""
+
+      # 安裝後 console-script metadata 驗證：確認 pyproject.toml [project.scripts] 已正確寫入 dist-info
+      - name: Verify installed console-script metadata from pyproject entry points
+        run: |
+          uv run python - <<'EOF'
+          import importlib.metadata, sys
+
+          dist = importlib.metadata.distribution("mcp-buy123-vendor")
+          eps = {ep.name: ep.value for ep in dist.entry_points if ep.group == "console_scripts"}
+
+          expected = {
+              "mcp-buy123-vendor": "mcp_buy123_vendor.server:main",
+              "mcp-buy123-vendor-login": "mcp_buy123_vendor.scripts.playwright_login:main",
+          }
+          missing = {k: v for k, v in expected.items() if eps.get(k) != v}
+          if missing:
+              for name, want in missing.items():
+                  got = eps.get(name, "<not found>")
+                  print(f"FAIL console_script '{name}': expected '{want}', got '{got}'", file=sys.stderr)
+              sys.exit(1)
+
+          for name in expected:
+              print(f"console_script '{name}' OK -> {eps[name]}")
+          EOF
+
       # 離線預設測試：明確隔離環境，防止 live integration tests 意外執行
-      - run: uv run pytest tests/test_basic.py -v
+      - run: uv run pytest tests/test_basic.py tests/test_entrypoints.py tests/test_task_1_1_naming_alignment.py tests/test_task_2_1_adversarial.py -v
         env:
           BUY123_RUN_LIVE_TESTS: "0"
           VENDOR_ACCESS_TOKEN: ""

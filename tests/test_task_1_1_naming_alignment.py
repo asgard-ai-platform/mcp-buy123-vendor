@@ -9,7 +9,7 @@ except ModuleNotFoundError:  # pragma: no cover
 
 ROOT = Path(__file__).resolve().parents[1]
 PYPROJECT = ROOT / "pyproject.toml"
-APP_FILE = ROOT / "app.py"
+APP_FILE = ROOT / "src" / "mcp_buy123_vendor" / "app.py"
 
 
 def load_pyproject():
@@ -26,8 +26,8 @@ def test_project_name_and_cli_entrypoints_match_public_name():
 
     assert pyproject["project"]["name"] == "mcp-buy123-vendor"
     assert scripts == {
-        "mcp-buy123-vendor": "mcp_server:main",
-        "mcp-buy123-vendor-login": "scripts.auth.playwright_login:main",
+        "mcp-buy123-vendor": "mcp_buy123_vendor.server:main",
+        "mcp-buy123-vendor-login": "mcp_buy123_vendor.scripts.playwright_login:main",
     }
     assert all(name.startswith("mcp-buy123-vendor") for name in scripts)
     assert list(scripts) == ["mcp-buy123-vendor", "mcp-buy123-vendor-login"]
@@ -85,5 +85,8 @@ def test_relevant_files_do_not_contain_legacy_public_identifiers():
 
     assert "mcp-buy123\"" not in combined_text
     assert 'FastMCP("mcp-buy123-vendor")' not in combined_text
-    assert "buy123_vendor" not in combined_text
+    # 只拒絕獨立出現的舊命名 buy123_vendor（不帶 mcp_ 前綴）
+    # mcp_buy123_vendor 是合法的 src-layout 套件路徑，不應被視為舊命名
+    import re
+    assert not re.search(r'(?<!mcp_)buy123_vendor', combined_text)
     assert 'name = "buy123-vendor"' not in combined_text
