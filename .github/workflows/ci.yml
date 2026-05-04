@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.10"
+
+      # 建立虛擬環境（uv pip install 需要先有 venv 才能執行）
+      - run: uv venv
+
+      # 非 editable 安裝：避免產生 egg-info / build metadata
+      - run: uv pip install . ruff pytest
+
+      # 靜態檢查：ruff lint（不修改檔案）
+      - run: uv run ruff check .
+
+      # 離線預設測試：明確隔離環境，防止 live integration tests 意外執行
+      - run: uv run pytest tests/test_basic.py -v
+        env:
+          BUY123_RUN_LIVE_TESTS: "0"
+          VENDOR_ACCESS_TOKEN: ""
+          VENDOR_REFRESH_TOKEN: ""
+          VENDOR_EMAIL: ""
+          VENDOR_PASSWORD: ""
+          VENDOR_ID: ""
