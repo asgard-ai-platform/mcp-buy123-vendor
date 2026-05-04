@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mcp-core123-vendor-api"
+name = "mcp-buy123-vendor"
 version = "0.1.0"
-description = "MCP Server for Core123 Vendor (前台) API — AI-callable tools via Model Context Protocol"
+description = "MCP Server for Buy123 Vendor API — AI-callable tools via Model Context Protocol"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
@@ -28,8 +28,8 @@ auth = [
 ]
 
 [project.scripts]
-mcp-core123-vendor = "mcp_server:main"
-mcp-core123-vendor-login = "scripts.auth.playwright_login:main"
+mcp-buy123-vendor = "mcp_server:main"
+mcp-buy123-vendor-login = "scripts.auth.playwright_login:main"
 
 [tool.setuptools]
 py-modules = ["mcp_server", "app"]
