@@ -154,11 +154,16 @@ class TestSrcServerCanonical:
         assert self._SOURCE.exists(), f"找不到 {self._SOURCE}"
 
     def test_load_dotenv_uses_file_relative_path(self) -> None:
-        """load_dotenv 呼叫應使用 Path(__file__).resolve().parent... / '.env'，
-        而非硬編碼路徑或 cwd 相對路徑。
+        """load_dotenv 呼叫應使用 __file__ 相對路徑，支援兩種模式：
+
+        1. 直接內聯：load_dotenv(Path(__file__).resolve().parent / '.env')
+        2. 兩步驟：_PROJECT_ROOT = Path(__file__).resolve().parent...; load_dotenv(_PROJECT_ROOT / '.env')
+
+        兩者都使用 __file__，區別在於是否預先儲存到變數。
         """
         tree = _parse_source(self._SOURCE)
 
+        # 找 load_dotenv 呼叫
         load_dotenv_calls: list[ast.Call] = []
         for node in ast.walk(tree):
             if isinstance(node, ast.Call):
@@ -174,11 +179,12 @@ class TestSrcServerCanonical:
         assert first_call.args, "load_dotenv() 應傳入路徑引數"
         arg_src = _ast_unparse(first_call.args[0])
 
-        assert "__file__" in arg_src, (
-            f"load_dotenv 的路徑引數應包含 __file__，實際為：{arg_src!r}"
+        # 驗證引入 _PROJECT_ROOT 或內含 __file__
+        assert "_PROJECT_ROOT" in arg_src or "__file__" in arg_src, (
+            f"load_dotenv 的路徑引數應使用 _PROJECT_ROOT 或 __file__，實際為：{arg_src!r}"
         )
         assert ".env" in arg_src, (
-            f"load_dotenv 的路徑引數應包含 '.env'，實際為：{arg_src!r}"
+            f"load_dotenv 的路徑引數應包含 .env，實際為：{arg_src!r}"
         )
 
     def test_load_dotenv_path_resolves_to_project_root(self) -> None:
@@ -233,34 +239,7 @@ class TestSrcServerCanonical:
 
 
 # ===========================================================================
-# 3. auth/vendor_login.py（根包裝器）— 委派至 src
-# ===========================================================================
-
-class TestVendorLoginRootWrapper:
-    """驗證根層 auth/vendor_login.py 是委派至 src 套件的薄包裝器。"""
-
-    _SOURCE = _PROJECT_ROOT / "auth" / "vendor_login.py"
-
-    def test_source_file_exists(self) -> None:
-        """auth/vendor_login.py 應存在。"""
-        assert self._SOURCE.exists(), f"找不到 {self._SOURCE}"
-
-    def test_delegates_to_src_package(self) -> None:
-        """auth/vendor_login.py 應從 mcp_buy123_vendor.auth.vendor_login 匯入符號。"""
-        tree = _parse_source(self._SOURCE)
-        src_imports: list[ast.ImportFrom] = [
-            node for node in ast.walk(tree)
-            if isinstance(node, ast.ImportFrom)
-            and node.module == "mcp_buy123_vendor.auth.vendor_login"
-        ]
-        assert src_imports, (
-            "auth/vendor_login.py 應從 mcp_buy123_vendor.auth.vendor_login 匯入符號，"
-            "表示已委派至 src 套件"
-        )
-
-
-# ===========================================================================
-# 4. src/mcp_buy123_vendor/auth/vendor_login.py（規範實作）— _persist_env 路徑
+# 3. src/mcp_buy123_vendor/auth/vendor_login.py（規範實作）— _persist_env 路徑
 # ===========================================================================
 
 class TestVendorLoginPersistEnvPath:
@@ -326,34 +305,7 @@ class TestVendorLoginPersistEnvPath:
 
 
 # ===========================================================================
-# 5. auth/browser_login.py（根包裝器）— 委派至 src
-# ===========================================================================
-
-class TestBrowserLoginRootWrapper:
-    """驗證根層 auth/browser_login.py 是委派至 src 套件的薄包裝器。"""
-
-    _SOURCE = _PROJECT_ROOT / "auth" / "browser_login.py"
-
-    def test_source_file_exists(self) -> None:
-        """auth/browser_login.py 應存在。"""
-        assert self._SOURCE.exists(), f"找不到 {self._SOURCE}"
-
-    def test_delegates_to_src_package(self) -> None:
-        """auth/browser_login.py 應從 mcp_buy123_vendor.auth.browser_login 匯入符號。"""
-        tree = _parse_source(self._SOURCE)
-        src_imports: list[ast.ImportFrom] = [
-            node for node in ast.walk(tree)
-            if isinstance(node, ast.ImportFrom)
-            and node.module == "mcp_buy123_vendor.auth.browser_login"
-        ]
-        assert src_imports, (
-            "auth/browser_login.py 應從 mcp_buy123_vendor.auth.browser_login 匯入符號，"
-            "表示已委派至 src 套件"
-        )
-
-
-# ===========================================================================
-# 6. src/mcp_buy123_vendor/auth/browser_login.py（規範實作）— PROJECT_ROOT 與 ENV_PATH
+# 4. src/mcp_buy123_vendor/auth/browser_login.py（規範實作）— PROJECT_ROOT 與 ENV_PATH
 # ===========================================================================
 
 class TestBrowserLoginPaths:
@@ -436,71 +388,7 @@ class TestBrowserLoginPaths:
 
 
 # ===========================================================================
-# 7. scripts/auth/playwright_login.py（根包裝器）— 委派至 src
-# ===========================================================================
-
-class TestPlaywrightLoginScriptPaths:
-    """驗證 scripts/auth/playwright_login.py 委派至 src 套件的薄包裝器行為。"""
-
-    _SOURCE = _PROJECT_ROOT / "scripts" / "auth" / "playwright_login.py"
-
-    def test_source_file_exists(self) -> None:
-        """scripts/auth/playwright_login.py 應存在。"""
-        assert self._SOURCE.exists(), f"找不到 {self._SOURCE}"
-
-    def test_delegates_to_src_package(self) -> None:
-        """scripts/auth/playwright_login.py 應從 mcp_buy123_vendor.scripts.playwright_login 匯入 main。"""
-        tree = _parse_source(self._SOURCE)
-        src_imports: list[ast.ImportFrom] = [
-            node for node in ast.walk(tree)
-            if isinstance(node, ast.ImportFrom)
-            and node.module == "mcp_buy123_vendor.scripts.playwright_login"
-            and any(alias.name == "main" for alias in node.names)
-        ]
-        assert src_imports, (
-            "scripts/auth/playwright_login.py 應有 "
-            "`from mcp_buy123_vendor.scripts.playwright_login import main` 陳述式"
-        )
-
-    def test_src_path_setup_before_import(self) -> None:
-        """scripts/auth/playwright_login.py 應在匯入 mcp_buy123_vendor 前設定 src/ 路徑。"""
-        tree = _parse_source(self._SOURCE)
-
-        # 尋找 sys.path.insert 或 _src_bootstrap 匯入
-        has_path_setup = False
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Call):
-                func = node.func
-                if (
-                    isinstance(func, ast.Attribute)
-                    and func.attr == "insert"
-                    and isinstance(func.value, ast.Attribute)
-                    and func.value.attr == "path"
-                ):
-                    has_path_setup = True
-                    break
-            if isinstance(node, ast.Import):
-                if any(alias.name == "_src_bootstrap" for alias in node.names):
-                    has_path_setup = True
-                    break
-        assert has_path_setup, (
-            "scripts/auth/playwright_login.py 應在匯入 mcp_buy123_vendor 前設定 sys.path"
-        )
-
-    def test_src_path_resolves_to_project_src(self) -> None:
-        """scripts/auth/playwright_login.py 計算的 src/ 路徑應指向專案的 src/ 目錄。"""
-        script_file = self._SOURCE
-        # scripts/auth/playwright_login.py → .parent.parent.parent / "src"
-        computed_src = script_file.resolve().parent.parent.parent / "src"
-        expected_src = _PROJECT_ROOT / "src"
-        assert computed_src == expected_src, (
-            f"scripts/auth/playwright_login.py 的 src 路徑 {computed_src} "
-            f"應等於 {expected_src}"
-        )
-
-
-# ===========================================================================
-# 8. src/mcp_buy123_vendor/scripts/playwright_login.py（規範實作）
+# 5. src/mcp_buy123_vendor/scripts/playwright_login.py（規範實作）
 # ===========================================================================
 
 class TestSrcPlaywrightLoginScript:

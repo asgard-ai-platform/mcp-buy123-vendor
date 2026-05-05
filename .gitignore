@@ -45,5 +45,8 @@ htmlcov/
 # Claude Code local settings
 .claude/
 
+# OpenCode orchestration artifacts
+.opencode/
+
 # Swarm orchestration artifacts
 .swarm/
