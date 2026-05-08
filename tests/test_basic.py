@@ -592,22 +592,22 @@ class TestConfigSettings:
 
     def test_get_headers_with_auth_merges_authorization(self) -> None:
         """get_headers(require_auth=True) 應合併 get_auth_headers() 的 Authorization 標頭。"""
-        from mcp_buy123_vendor.config.settings import get_headers  # noqa: PLC0415
+        settings = importlib.import_module("mcp_buy123_vendor.config.settings")
 
         fake_auth = {"Authorization": "Bearer test-token-xyz"}
-        with patch("mcp_buy123_vendor.config.settings.get_auth_headers", return_value=fake_auth):
-            headers = get_headers(require_auth=True)
+        with patch.object(settings, "get_auth_headers", return_value=fake_auth):
+            headers = settings.get_headers(require_auth=True)
 
         assert headers.get("Authorization") == "Bearer test-token-xyz"
         assert headers.get("Content-Type") == "application/json"
 
     def test_get_headers_default_requires_auth(self) -> None:
         """get_headers() 預設 require_auth=True，應呼叫 get_auth_headers()。"""
-        from mcp_buy123_vendor.config.settings import get_headers  # noqa: PLC0415
+        settings = importlib.import_module("mcp_buy123_vendor.config.settings")
 
         fake_auth = {"Authorization": "Bearer default-token"}
-        with patch("mcp_buy123_vendor.config.settings.get_auth_headers", return_value=fake_auth) as mock_auth:
-            headers = get_headers()
+        with patch.object(settings, "get_auth_headers", return_value=fake_auth) as mock_auth:
+            headers = settings.get_headers()
 
         mock_auth.assert_called_once()
         assert "Authorization" in headers
@@ -647,7 +647,7 @@ class TestRestClientPagination:
 
     def test_fetch_all_pages_stops_on_empty_page(self) -> None:
         """fetch_all_pages 在收到空 items 時應立即停止並回傳已累積的資料。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         # 第一頁有資料，第二頁空
         pages = [
@@ -662,10 +662,10 @@ class TestRestClientPagination:
             return pages[len(captured_params) - 1]
 
         with (
-            patch("mcp_buy123_vendor.connectors.rest_client.api_get", side_effect=_capture_and_return),
+            patch.object(rest_client, "api_get", side_effect=_capture_and_return),
             patch("time.sleep"),
         ):
-            result = fetch_all_pages("items", params={"per_page": 2})
+            result = rest_client.fetch_all_pages("items", params={"per_page": 2})
 
         assert result == [{"id": 1}, {"id": 2}]
         # 驗證第一次呼叫帶入 page=1（快照值，不受後續 mutation 影響）
@@ -675,7 +675,7 @@ class TestRestClientPagination:
 
     def test_fetch_all_pages_stops_on_short_page(self) -> None:
         """fetch_all_pages 在 items 數量 < per_page 時應停止（最後一頁）。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         # per_page 預設 50，回傳 3 筆 → 短頁，應停止
         pages = [{"items": [{"id": i} for i in range(3)]}]
@@ -686,10 +686,10 @@ class TestRestClientPagination:
             return pages[len(captured_params) - 1]
 
         with (
-            patch("mcp_buy123_vendor.connectors.rest_client.api_get", side_effect=_capture_and_return),
+            patch.object(rest_client, "api_get", side_effect=_capture_and_return),
             patch("time.sleep"),
         ):
-            result = fetch_all_pages("items")
+            result = rest_client.fetch_all_pages("items")
 
         assert len(result) == 3
         # 驗證帶入了 page=1 與預設 per_page=50（快照值）
@@ -698,7 +698,7 @@ class TestRestClientPagination:
 
     def test_fetch_all_pages_accumulates_multiple_pages(self) -> None:
         """fetch_all_pages 應跨多頁累積所有 items，且每頁帶入遞增的 page 參數。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         per_page = 2
         pages = [
@@ -714,10 +714,10 @@ class TestRestClientPagination:
             return pages[len(captured_params) - 1]
 
         with (
-            patch("mcp_buy123_vendor.connectors.rest_client.api_get", side_effect=_capture_and_return),
+            patch.object(rest_client, "api_get", side_effect=_capture_and_return),
             patch("time.sleep"),
         ):
-            result = fetch_all_pages("items", params={"per_page": per_page})
+            result = rest_client.fetch_all_pages("items", params={"per_page": per_page})
 
         assert [item["id"] for item in result] == [1, 2, 3, 4, 5]
         # 驗證三次呼叫的 page 參數依序遞增（快照值，不受後續 mutation 影響）
@@ -732,7 +732,7 @@ class TestRestClientPagination:
 
     def test_fetch_all_pages_respects_max_pages(self) -> None:
         """fetch_all_pages 在達到 max_pages 時應停止，不繼續請求。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         # 每頁都是滿頁（per_page=2），但 max_pages=2 → 只取 2 頁
         full_page = {"items": [{"id": 1}, {"id": 2}]}
@@ -744,10 +744,10 @@ class TestRestClientPagination:
             return full_page
 
         with (
-            patch("mcp_buy123_vendor.connectors.rest_client.api_get", side_effect=_capture_and_return),
+            patch.object(rest_client, "api_get", side_effect=_capture_and_return),
             patch("time.sleep"),
         ):
-            result = fetch_all_pages("items", params={"per_page": 2}, max_pages=2)
+            result = rest_client.fetch_all_pages("items", params={"per_page": 2}, max_pages=2)
 
         assert len(captured_params) == 2
         assert len(result) == 4
@@ -759,20 +759,20 @@ class TestRestClientPagination:
 
     def test_fetch_all_pages_custom_items_key(self) -> None:
         """fetch_all_pages 應支援自訂 items_key 參數。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         pages = [{"data": [{"id": 10}]}]
         with (
-            patch("mcp_buy123_vendor.connectors.rest_client.api_get", side_effect=pages),
+            patch.object(rest_client, "api_get", side_effect=pages),
             patch("time.sleep"),
         ):
-            result = fetch_all_pages("items", items_key="data")
+            result = rest_client.fetch_all_pages("items", items_key="data")
 
         assert result == [{"id": 10}]
 
     def test_fetch_all_pages_sleeps_between_pages(self) -> None:
         """fetch_all_pages 在多頁之間應呼叫 time.sleep 進行速率限制。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         # per_page=2：第 1 頁滿頁（2 筆）→ sleep；第 2 頁短頁（1 筆）→ 停止，不 sleep
         per_page = 2
@@ -783,10 +783,10 @@ class TestRestClientPagination:
         sleep_calls: list[float] = []
 
         with (
-            patch("mcp_buy123_vendor.connectors.rest_client.api_get", side_effect=pages),
+            patch.object(rest_client, "api_get", side_effect=pages),
             patch("time.sleep", side_effect=lambda s: sleep_calls.append(s)),
         ):
-            fetch_all_pages("items", params={"per_page": per_page}, rate_limit_delay=0.5)
+            rest_client.fetch_all_pages("items", params={"per_page": per_page}, rate_limit_delay=0.5)
 
         # 第 1 頁後 sleep，第 2 頁是短頁（停止）不 sleep → 共 1 次
         assert len(sleep_calls) == 1
@@ -798,7 +798,7 @@ class TestRestClientPagination:
 
     def test_fetch_all_pages_cursor_follows_next_cursor(self) -> None:
         """fetch_all_pages_cursor 應依序跟隨 next_cursor 直到耗盡。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages_cursor  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         pages = [
             {"items": [{"id": 1}], "next_cursor": "cursor-abc"},
@@ -813,10 +813,10 @@ class TestRestClientPagination:
             return pages[len(captured_params) - 1]
 
         with (
-            patch("mcp_buy123_vendor.connectors.rest_client.api_get", side_effect=_capture_and_return),
+            patch.object(rest_client, "api_get", side_effect=_capture_and_return),
             patch("time.sleep"),
         ):
-            result = fetch_all_pages_cursor("items")
+            result = rest_client.fetch_all_pages_cursor("items")
 
         assert [item["id"] for item in result] == [1, 2, 3]
         # 驗證第一次呼叫不帶 cursor（快照值）
@@ -832,37 +832,37 @@ class TestRestClientPagination:
 
     def test_fetch_all_pages_cursor_stops_when_no_cursor(self) -> None:
         """fetch_all_pages_cursor 在 next_cursor 為 None/空時應停止。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages_cursor  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         pages = [
             {"items": [{"id": 1}, {"id": 2}], "next_cursor": None},
         ]
         with (
-            patch("mcp_buy123_vendor.connectors.rest_client.api_get", side_effect=pages),
+            patch.object(rest_client, "api_get", side_effect=pages),
             patch("time.sleep"),
         ):
-            result = fetch_all_pages_cursor("items")
+            result = rest_client.fetch_all_pages_cursor("items")
 
         assert len(result) == 2
 
     def test_fetch_all_pages_cursor_stops_when_items_empty(self) -> None:
         """fetch_all_pages_cursor 在 items 為空時應停止，即使有 next_cursor。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages_cursor  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         pages = [
             {"items": [], "next_cursor": "some-cursor"},
         ]
         with (
-            patch("mcp_buy123_vendor.connectors.rest_client.api_get", side_effect=pages),
+            patch.object(rest_client, "api_get", side_effect=pages),
             patch("time.sleep"),
         ):
-            result = fetch_all_pages_cursor("items")
+            result = rest_client.fetch_all_pages_cursor("items")
 
         assert result == []
 
     def test_fetch_all_pages_cursor_custom_keys(self) -> None:
         """fetch_all_pages_cursor 應支援自訂 cursor_key 與 cursor_param。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages_cursor  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         pages = [
             {"records": [{"id": 7}], "page_token": "tok-1"},
@@ -876,10 +876,10 @@ class TestRestClientPagination:
             return pages[len(captured_params) - 1]
 
         with (
-            patch("mcp_buy123_vendor.connectors.rest_client.api_get", side_effect=_capture_and_return),
+            patch.object(rest_client, "api_get", side_effect=_capture_and_return),
             patch("time.sleep"),
         ):
-            result = fetch_all_pages_cursor(
+            result = rest_client.fetch_all_pages_cursor(
                 "items",
                 items_key="records",
                 cursor_key="page_token",
@@ -898,7 +898,7 @@ class TestRestClientPagination:
 
     def test_fetch_all_pages_by_date_segments_splits_range(self) -> None:
         """fetch_all_pages_by_date_segments 應依 segment_days 切分日期範圍並委派給 fetch_all_pages。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages_by_date_segments  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         # 60 天範圍，segment_days=30 → 應呼叫 fetch_all_pages 兩次
         # 實作會 mutate 同一個 params dict，因此用 side_effect 在呼叫時複製快照
@@ -912,8 +912,8 @@ class TestRestClientPagination:
             captured_params.append(dict(kwargs.get("params", {})))
             return segment_results[len(captured_params) - 1]
 
-        with patch("mcp_buy123_vendor.connectors.rest_client.fetch_all_pages", side_effect=_capture_and_return):
-            result = fetch_all_pages_by_date_segments(
+        with patch.object(rest_client, "fetch_all_pages", side_effect=_capture_and_return):
+            result = rest_client.fetch_all_pages_by_date_segments(
                 "items",
                 start_date="2024-01-01",
                 end_date="2024-03-01",
@@ -931,7 +931,7 @@ class TestRestClientPagination:
 
     def test_fetch_all_pages_by_date_segments_passes_date_params(self) -> None:
         """fetch_all_pages_by_date_segments 應將正確的日期區間傳入 fetch_all_pages。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages_by_date_segments  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         # 實作會 mutate 同一個 params dict，因此用 side_effect 在呼叫時複製快照
         captured_params: list[dict] = []
@@ -940,8 +940,8 @@ class TestRestClientPagination:
             captured_params.append(dict(kwargs.get("params", {})))
             return []
 
-        with patch("mcp_buy123_vendor.connectors.rest_client.fetch_all_pages", side_effect=_capture_and_return):
-            fetch_all_pages_by_date_segments(
+        with patch.object(rest_client, "fetch_all_pages", side_effect=_capture_and_return):
+            rest_client.fetch_all_pages_by_date_segments(
                 "items",
                 start_date="2024-01-01",
                 end_date="2024-02-01",
@@ -956,7 +956,7 @@ class TestRestClientPagination:
 
     def test_fetch_all_pages_by_date_segments_custom_date_params(self) -> None:
         """fetch_all_pages_by_date_segments 應支援自訂 date_start_param / date_end_param。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages_by_date_segments  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         # 實作會 mutate 同一個 params dict，因此用 side_effect 在呼叫時複製快照
         captured_params: list[dict] = []
@@ -965,8 +965,8 @@ class TestRestClientPagination:
             captured_params.append(dict(kwargs.get("params", {})))
             return [{"id": 99}]
 
-        with patch("mcp_buy123_vendor.connectors.rest_client.fetch_all_pages", side_effect=_capture_and_return):
-            result = fetch_all_pages_by_date_segments(
+        with patch.object(rest_client, "fetch_all_pages", side_effect=_capture_and_return):
+            result = rest_client.fetch_all_pages_by_date_segments(
                 "items",
                 start_date="2024-06-01",
                 end_date="2024-07-01",
@@ -985,7 +985,7 @@ class TestRestClientPagination:
 
     def test_fetch_all_pages_by_date_segments_accumulates_all_segments(self) -> None:
         """fetch_all_pages_by_date_segments 應累積所有區間的結果，且每段日期邊界正確。"""
-        from mcp_buy123_vendor.connectors.rest_client import fetch_all_pages_by_date_segments  # noqa: PLC0415
+        rest_client = importlib.import_module("mcp_buy123_vendor.connectors.rest_client")
 
         # 2024-01-01 到 2024-04-01，每 30 天一段 → 實際產生 4 段：
         #   2024-01-01 → 2024-01-31
@@ -1005,8 +1005,8 @@ class TestRestClientPagination:
             captured_params.append(dict(kwargs.get("params", {})))
             return segment_results[len(captured_params) - 1]
 
-        with patch("mcp_buy123_vendor.connectors.rest_client.fetch_all_pages", side_effect=_capture_and_return):
-            result = fetch_all_pages_by_date_segments(
+        with patch.object(rest_client, "fetch_all_pages", side_effect=_capture_and_return):
+            result = rest_client.fetch_all_pages_by_date_segments(
                 "items",
                 start_date="2024-01-01",
                 end_date="2024-04-01",
