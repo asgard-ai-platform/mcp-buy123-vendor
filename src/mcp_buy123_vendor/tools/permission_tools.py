@@ -1,7 +1,5 @@
 """Tools for vendor permission management (權限管理)."""
 
-from typing import Optional
-
 from pydantic import Field
 
 from mcp_buy123_vendor.app import mcp

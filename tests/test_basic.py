@@ -22,7 +22,9 @@ import _src_bootstrap  # noqa: F401
 
 def _reset_vendor_login_cache() -> None:
     """將 mcp_buy123_vendor.auth.vendor_login 的 _cache 重置為初始狀態，確保測試間互不干擾。"""
-    import mcp_buy123_vendor.auth.vendor_login as vl  # noqa: PLC0415
+    vl = importlib.import_module("mcp_buy123_vendor.auth.vendor_login")
+    auth_pkg = importlib.import_module("mcp_buy123_vendor.auth")
+    setattr(auth_pkg, "vendor_login", vl)
 
     with vl._lock:
         vl._cache["access_token"] = None
@@ -255,11 +257,8 @@ class TestRestClientErrorHandling:
         # 清除 rest_client 及其直接依賴模組的快取，確保頂層程式碼重新執行
         _cold_import_modules = [
             "mcp_buy123_vendor.connectors.rest_client",
-            "mcp_buy123_vendor.connectors",
             "mcp_buy123_vendor.config.settings",
-            "mcp_buy123_vendor.config",
             "mcp_buy123_vendor.auth.vendor_login",
-            "mcp_buy123_vendor.auth",
         ]
         cached_modules: dict[str, object] = {}
         for mod_name in _cold_import_modules:
@@ -295,6 +294,8 @@ class TestAuthTokenState:
     def setup_method(self) -> None:
         """每個測試前重置快取，確保測試隔離。"""
         _reset_vendor_login_cache()
+        os.environ.pop("VENDOR_ACCESS_TOKEN", None)
+        os.environ.pop("VENDOR_REFRESH_TOKEN", None)
 
     def teardown_method(self) -> None:
         """每個測試後清理快取與環境變數。"""
@@ -664,7 +665,7 @@ class TestRestClientPagination:
             patch("mcp_buy123_vendor.connectors.rest_client.api_get", side_effect=_capture_and_return),
             patch("time.sleep"),
         ):
-            result = fetch_all_pages("items")
+            result = fetch_all_pages("items", params={"per_page": 2})
 
         assert result == [{"id": 1}, {"id": 2}]
         # 驗證第一次呼叫帶入 page=1（快照值，不受後續 mutation 影響）

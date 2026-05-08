@@ -12,11 +12,7 @@ Phase 2 遷移後更新：
 from __future__ import annotations
 
 import ast
-import os
-import sys
 from pathlib import Path
-
-import pytest
 
 # 確保 src/ 在 sys.path 中，讓 mcp_buy123_vendor.* 可解析
 import _src_bootstrap  # noqa: F401

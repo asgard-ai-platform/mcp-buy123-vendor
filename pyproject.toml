@@ -38,4 +38,5 @@ where = ["src"]
 
 include = ["mcp_buy123_vendor*"]
 [tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["tests"]

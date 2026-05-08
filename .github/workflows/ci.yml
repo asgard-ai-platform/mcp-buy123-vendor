@@ -15,7 +15,7 @@ jobs:
           python-version: "3.10"
 
       # 建立虛擬環境（uv pip install 需要先有 venv 才能執行）
-      - run: uv venv
+      - run: uv venv --clear
 
       # 非 editable 安裝：避免產生 egg-info / build metadata
       - run: uv pip install . ruff pytest
