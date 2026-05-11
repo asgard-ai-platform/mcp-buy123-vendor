@@ -5,18 +5,51 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mcp-buy123-vendor"
 version = "0.1.0"
-description = "MCP Server for Buy123 Vendor API — AI-callable tools via Model Context Protocol"
+description = "Model Context Protocol server for read-only buy123 vendor portal queries"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [
     {name = "Asgard AI Platform", email = "dev@asgard.ai"},
 ]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "claude",
+    "claude-desktop",
+    "claude-code",
+    "buy123",
+    "vendor-portal",
+    "vendor-api",
+    "ai-tools",
+    "automation",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Office/Business",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "requests>=2.31.0",
     "mcp>=1.0.0",
     "python-dotenv>=1.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/asgard-ai-platform/mcp-buy123-vendor"
+Repository = "https://github.com/asgard-ai-platform/mcp-buy123-vendor"
+Issues = "https://github.com/asgard-ai-platform/mcp-buy123-vendor/issues"
+Documentation = "https://github.com/asgard-ai-platform/mcp-buy123-vendor#readme"
 
 [project.optional-dependencies]
 auth = [

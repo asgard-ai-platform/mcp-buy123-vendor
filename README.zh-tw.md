@@ -1,10 +1,22 @@
 # mcp-buy123-vendor
 
-`mcp-buy123-vendor` 將 buy123 供應商後台 API 包裝為 [MCP](https://modelcontextprotocol.io/) 伺服器，讓 AI 客戶端能夠查詢供應商資料——訂單、出貨、商品、庫存等——無需手動操作後台介面。
+`mcp-buy123-vendor` 是針對 buy123 供應商後台的開源 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) 伺服器。它讓 Claude Desktop、Claude Code 與其他相容 MCP 的 AI 客戶端，能以唯讀工具查詢供應商營運資料，包含訂單、退貨、出貨、商品、組合商品、通路、庫存、權限與供應商基本資料。
+
+如果你希望 AI 助理透過結構化 MCP 工具檢視 buy123 供應商資料，而不是手動瀏覽後台，本專案可作為本機整合入口。
 
 > **法律前提**：本工具需要在 buy123 平台上擁有合法的供應商帳號。您必須持有有效的供應商身份，並遵守平台服務條款。不支援未經授權的存取。
+>
+> **非官方專案**：本倉庫由社群維護，並非 buy123 官方產品，也不代表 buy123 官方背書。
 
 英文文件請參閱 [README.md](README.md)。
+
+## 特色
+
+- buy123 供應商後台資料查詢用 MCP server
+- 供應商營運流程的唯讀查詢工具
+- 支援 Claude Desktop 與 Claude Code 的本機 MCP 設定
+- 互動式按需登入，token 僅儲存在本機
+- 離線單元測試，方便安全地本機開發
 
 ## 提供的工具
 
@@ -46,7 +58,7 @@
 ### 安裝
 
 ```bash
-git clone https://github.com/your-org/mcp-buy123-vendor.git
+git clone https://github.com/asgard-ai-platform/mcp-buy123-vendor.git
 cd mcp-buy123-vendor
 
 python3 -m venv .venv

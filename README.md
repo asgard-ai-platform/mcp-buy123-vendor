@@ -1,10 +1,22 @@
 # mcp-buy123-vendor
 
-`mcp-buy123-vendor` wraps the buy123 vendor portal API as an [MCP](https://modelcontextprotocol.io/) server so an AI client can query vendor data — orders, shipments, products, inventory, and more — without manually browsing the portal.
+`mcp-buy123-vendor` is an open-source [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server for the buy123 vendor portal. It gives AI clients such as Claude Desktop, Claude Code, and other MCP-compatible agents read-only tools for querying vendor operations data, including orders, returns, shipments, products, bundles, channels, inventory, permissions, and vendor profile records.
+
+This project is useful when you want an AI assistant to inspect buy123 vendor data through structured MCP tools instead of manually browsing the vendor portal.
 
 > **Legal prerequisite**: This tool requires a legitimate vendor account on the buy123 platform. You must hold a valid vendor identity and comply with the platform's terms of service. Unauthorized access is not supported.
+>
+> **Unofficial project**: This repository is community-maintained and is not an official product of, or endorsed by, buy123.
 
 Traditional Chinese documentation is available in [README.zh-tw.md](README.zh-tw.md).
+
+## Highlights
+
+- MCP server for buy123 vendor portal data access
+- Read-only query tools for vendor operations workflows
+- Claude Desktop and Claude Code compatible local MCP configuration
+- Interactive on-demand login flow with local token storage
+- Offline unit test suite for safe local development
 
 ## Provided Tools
 
@@ -46,7 +58,7 @@ All query tools return the upstream API response envelope: `{ success, msg, data
 ### Install
 
 ```bash
-git clone https://github.com/your-org/mcp-buy123-vendor.git
+git clone https://github.com/asgard-ai-platform/mcp-buy123-vendor.git
 cd mcp-buy123-vendor
 
 python3 -m venv .venv
