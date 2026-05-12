@@ -8,7 +8,7 @@ This project is useful when you want an AI assistant to inspect buy123 vendor da
 >
 > **Unofficial project**: This repository is community-maintained and is not an official product of, or endorsed by, buy123.
 
-Traditional Chinese documentation is available in [README.zh-tw.md](README.zh-tw.md).
+Traditional Chinese documentation is available in [README.zh-TW.md](README.zh-TW.md).
 
 ## Highlights
 
@@ -20,7 +20,7 @@ Traditional Chinese documentation is available in [README.zh-tw.md](README.zh-tw
 
 ## Provided Tools
 
-All query tools return the upstream API response envelope: `{ success, msg, data, pagination? }`.
+**59 AI-callable tools** — all query-only. Every tool returns the upstream API response envelope: `{ success, msg, data, pagination? }`.
 
 ### General Enumerations (no login required — 14 tools)
 

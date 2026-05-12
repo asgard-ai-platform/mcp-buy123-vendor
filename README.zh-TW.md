@@ -20,7 +20,7 @@
 
 ## 提供的工具
 
-所有查詢工具均回傳上游 API 的回應封包：`{ success, msg, data, pagination? }`。
+**59 個 AI 可呼叫工具** — 全部為唯讀查詢。所有工具均回傳上游 API 的回應封包：`{ success, msg, data, pagination? }`。
 
 ### 通用列舉（無需登入 — 14 個工具）
 
